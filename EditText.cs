@@ -1,5 +1,5 @@
 // ===========================================================================
-//	©2013-2024 WebSupergoo. All rights reserved.
+//	©2013-2026 WebSupergoo. All rights reserved.
 //
 //	This source code is for use exclusively with the ABCpdf product with
 //	which it is distributed, under the terms of the license for that
@@ -19,6 +19,8 @@ using System.Drawing;
 using System.Text;
 using System.Diagnostics;
 using System.Windows.Forms;
+
+using WebSupergoo.ABCpdf14.Atoms;
 
 
 namespace WebSupergoo.PDFSurgeon {
@@ -143,8 +145,7 @@ namespace WebSupergoo.PDFSurgeon {
 			double hi = (double)trackBar2.Value / trackBar2.Maximum;
 			StringBuilder sb = _editor.GetPartialContentStream(lo, hi);
 			if (sb != null) {
-				string s = sb.ToString();
-				textBox1.Text = "<< /Length " + s.Length + " >>\r\nstream\r\n" + s + "\r\nendstream\r\n";
+				textBox1.Text = UpdateFromContentStream(sb.ToString(), textBox1.Text);
 				UpdateSearch();
 			}
 		}
@@ -154,8 +155,7 @@ namespace WebSupergoo.PDFSurgeon {
 			double hi = (double)trackBar2.Value / trackBar2.Maximum;
 			StringBuilder sb = _editor.GetPartialContentStream(lo, hi);
 			if (sb != null) {
-				string s = sb.ToString();
-				textBox1.Text = "<< /Length " + s.Length + " >>\r\nstream\r\n" + s + "\r\nendstream\r\n";
+				textBox1.Text = UpdateFromContentStream(sb.ToString(), textBox1.Text);
 				UpdateSearch();
 			}
 		}
@@ -243,6 +243,13 @@ namespace WebSupergoo.PDFSurgeon {
 				label3.Text = "0/0";
 				numericUpDown1.Enabled = false;
 			}
+		}
+
+		private static string UpdateFromContentStream(string newContentStream, string originalText) {
+			string header = originalText.Substring(0, originalText.IndexOf("stream\r\n"));
+			var dict = (DictAtom)Atom.FromString(header);
+			dict["Length"] = new NumAtom(newContentStream.Length);
+			return dict.ToString() + "\r\nstream\r\n" + newContentStream + "\r\nendstream\r\n";
 		}
 	}
 }
